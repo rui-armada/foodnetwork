@@ -6,18 +6,12 @@ import (
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 
-	"food/config"
-	"food/models"
+	"foodnetwork/config"
+	"foodnetwork/models"
 )
 
 func CreateBusiness(c *gin.Context) {
 	db := config.InitDB()
-	defer func() {
-		err := db.Close()
-		if err != nil {
-			panic(err)
-		}
-	}()
 
 	var business models.Business
 	if err := c.ShouldBindJSON(&business); err != nil {
@@ -32,12 +26,6 @@ func CreateBusiness(c *gin.Context) {
 
 func GetBusiness(c *gin.Context) {
 	db := config.InitDB()
-	defer func() {
-		err := db.Close()
-		if err != nil {
-			panic(err)
-		}
-	}()
 
 	var business models.Business
 	if err := db.Where("id = ?", c.Param("id")).First(&business).Error; err != nil {
@@ -54,12 +42,6 @@ func GetBusiness(c *gin.Context) {
 
 func UpdateBusiness(c *gin.Context) {
 	db := config.InitDB()
-	defer func() {
-		err := db.Close()
-		if err != nil {
-			panic(err)
-		}
-	}()
 
 	var business models.Business
 	if err := db.Where("id = ?", c.Param("id")).First(&business).Error; err != nil {
@@ -79,12 +61,6 @@ func UpdateBusiness(c *gin.Context) {
 
 func DeleteBusiness(c *gin.Context) {
 	db := config.InitDB()
-	defer func() {
-		err := db.Close()
-		if err != nil {
-			panic(err)
-		}
-	}()
 
 	var business models.Business
 	if err := db.Where("id = ?", c.Param("id")).First(&business).Error; err != nil {
@@ -95,4 +71,5 @@ func DeleteBusiness(c *gin.Context) {
 	db.Delete(&business)
 
 	c.JSON(http.StatusOK, gin.H{"data": "Record deleted successfully"})
+
 }

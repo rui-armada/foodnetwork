@@ -3,7 +3,7 @@ package routes
 import (
 	"github.com/gin-gonic/gin"
 
-	"food/controllers"
+	"foodnetwork/controllers"
 )
 
 func SetupRouter() *gin.Engine {
@@ -40,7 +40,7 @@ func SetupRouter() *gin.Engine {
 	v1.GET("/job_titles/:id", controllers.GetJobTitle)
 	v1.PUT("/job_titles/:id", controllers.UpdateJobTitle)
 	v1.DELETE("/job_titles/:id", controllers.DeleteJobTitle)
-	v1.GET("/job_titles", controllers.ListJobTitles)
+	v1.GET("/job_titles", controllers.GetAllJobTitles)
 
 	// JobPost routes
 	v1.POST("/job_posts", controllers.CreateJobPost)

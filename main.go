@@ -3,7 +3,7 @@ package main
 import (
 	"log"
 
-	"food/routes"
+	"foodnetwork/routes"
 	"github.com/gin-gonic/gin"
 )
 

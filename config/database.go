@@ -4,7 +4,8 @@ import (
 	"fmt"
 	"log"
 
-	"food/models"
+	"foodnetwork/models"
+
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )

@@ -5,8 +5,8 @@ import (
 	"net/http"
 	"strconv"
 
-	"food/config"
-	"food/models"
+	"foodnetwork/config"
+	"foodnetwork/models"
 	"github.com/gin-gonic/gin"
 	"github.com/jinzhu/gorm"
 )

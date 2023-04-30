@@ -1,4 +1,4 @@
-module food
+module foodnetwork
 
 go 1.18
 

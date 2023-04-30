@@ -3,93 +3,84 @@ package controllers
 import (
 	"net/http"
 
-	"food/config"
-	"food/models"
 	"github.com/gin-gonic/gin"
+	"gorm.io/gorm"
+
+	"foodnetwork/config"
+	"foodnetwork/models"
 )
 
-// CreateJobPost creates a new job post
 func CreateJobPost(c *gin.Context) {
-	var input models.JobPost
-	if err := c.ShouldBindJSON(&input); err != nil {
+	db := config.InitDB()
+
+	var jobPost models.JobPost
+	if err := c.ShouldBindJSON(&jobPost); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	jobPost := models.JobPost{
-		Title:       input.Title,
-		Description: input.Description,
-		BusinessID:  input.BusinessID,
-	}
+	db.Create(&jobPost)
 
-	if err := models.DB.Create(&jobPost).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create job post"})
-		return
-	}
-
-	c.JSON(http.StatusOK, jobPost)
+	c.JSON(http.StatusCreated, gin.H{"data": jobPost})
 }
 
-// GetJobPost retrieves a job post by ID
 func GetJobPost(c *gin.Context) {
+	db := config.InitDB()
+
 	var jobPost models.JobPost
-	if err := models.DB.First(&jobPost, c.Param("id")).Error; err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": "Job post not found"})
+	if err := db.Where("id = ?", c.Param("id")).First(&jobPost).Error; err != nil {
+		if err == gorm.ErrRecordNotFound {
+			c.JSON(http.StatusNotFound, gin.H{"error": "Record not found"})
+			return
+		}
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
-	c.JSON(http.StatusOK, jobPost)
+	c.JSON(http.StatusOK, gin.H{"data": jobPost})
 }
 
-// UpdateJobPost updates a job post by ID
 func UpdateJobPost(c *gin.Context) {
+	db := config.InitDB()
+
 	var jobPost models.JobPost
-	if err := models.DB.First(&jobPost, c.Param("id")).Error; err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": "Job post not found"})
+	if err := db.Where("id = ?", c.Param("id")).First(&jobPost).Error; err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Record not found"})
 		return
 	}
 
-	var input models.JobPost
-	if err := c.ShouldBindJSON(&input); err != nil {
+	if err := c.ShouldBindJSON(&jobPost); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	jobPost.Title = input.Title
-	jobPost.Description = input.Description
-	jobPost.BusinessID = input.BusinessID
+	db.Save(&jobPost)
 
-	if err := models.DB.Save(&jobPost).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update job post"})
-		return
-	}
-
-	c.JSON(http.StatusOK, jobPost)
+	c.JSON(http.StatusOK, gin.H{"data": jobPost})
 }
 
-// DeleteJobPost deletes a job post by ID
 func DeleteJobPost(c *gin.Context) {
+	db := config.InitDB()
+
 	var jobPost models.JobPost
-	if err := models.DB.First(&jobPost, c.Param("id")).Error; err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": "Job post not found"})
+	if err := db.Where("id = ?", c.Param("id")).First(&jobPost).Error; err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Record not found"})
 		return
 	}
 
-	if err := models.DB.Delete(&jobPost).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete job post"})
-		return
-	}
+	db.Delete(&jobPost)
 
-	c.JSON(http.StatusOK, gin.H{"message": "Job post deleted"})
+	c.JSON(http.StatusOK, gin.H{"data": "Record deleted successfully"})
 }
 
-// ListJobPosts retrieves a list of all job posts
-func ListJobPosts(c *gin.Context) {
+func GetJobPosts(c *gin.Context) {
+	db := config.InitDB()
+
 	var jobPosts []models.JobPost
-	if err := models.DB.Find(&jobPosts).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to get job posts"})
+	if err := db.Find(&jobPosts).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
-	c.JSON(http.StatusOK, jobPosts)
+	c.JSON(http.StatusOK, gin.H{"data": jobPosts})
 }
