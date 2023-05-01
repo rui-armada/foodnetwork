@@ -47,42 +47,44 @@ func SetupRouter() *gin.Engine {
 	v1.GET("/job_posts/:id", controllers.GetJobPost)
 	v1.PUT("/job_posts/:id", controllers.UpdateJobPost)
 	v1.DELETE("/job_posts/:id", controllers.DeleteJobPost)
-	v1.GET("/job_posts", controllers.ListJobPosts)
+	//v1.GET("/job_posts", controllers.ListJobPosts)
 
 	// Product routes
 	v1.POST("/products", controllers.CreateProduct)
 	v1.GET("/products/:id", controllers.GetProduct)
 	v1.PUT("/products/:id", controllers.UpdateProduct)
 	v1.DELETE("/products/:id", controllers.DeleteProduct)
-	v1.GET("/products", controllers.ListProducts)
+	//v1.GET("/products", controllers.ListProducts)
 
 	// Service routes
 	v1.POST("/services", controllers.CreateService)
 	v1.GET("/services/:id", controllers.GetService)
 	v1.PUT("/services/:id", controllers.UpdateService)
 	v1.DELETE("/services/:id", controllers.DeleteService)
-	v1.GET("/services", controllers.ListServices)
+	//v1.GET("/services", controllers.ListServices)
 
 	// Rating routes
 	v1.POST("/ratings", controllers.CreateRating)
 	v1.GET("/ratings/:id", controllers.GetRating)
 	v1.PUT("/ratings/:id", controllers.UpdateRating)
 	v1.DELETE("/ratings/:id", controllers.DeleteRating)
-	v1.GET("/ratings", controllers.ListRatings)
+	//v1.GET("/ratings", controllers.ListRatings)
 
 	// Review routes
 	v1.POST("/reviews", controllers.CreateReview)
 	v1.GET("/reviews/:id", controllers.GetReview)
 	v1.PUT("/reviews/:id", controllers.UpdateReview)
 	v1.DELETE("/reviews/:id", controllers.DeleteReview)
-	v1.GET("/reviews", controllers.ListReviews)
+	//v1.GET("/reviews", controllers.ListReviews)
 
 	// ProfessionalExperience routes
 	v1.POST("/professional-experiences", controllers.CreateProfessionalExperience)
 	v1.GET("/professional-experiences/:id", controllers.GetProfessionalExperience)
 	v1.PUT("/professional-experiences/:id", controllers.UpdateProfessionalExperience)
 	v1.DELETE("/professional-experiences/:id", controllers.DeleteProfessionalExperience)
-	v1.GET("/professional-experiences", controllers.ListProfessionalExperiences)
+	//v1.GET("/professional-experiences", controllers.ListProfessionalExperiences)
+
+	v1.POST("/login", controllers.Login)
 
 	return router
 }

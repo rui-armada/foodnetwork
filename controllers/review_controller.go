@@ -1,48 +1,39 @@
 package controllers
 
 import (
-	"fmt"
 	"net/http"
-	"strconv"
+
+	"github.com/gin-gonic/gin"
+	"gorm.io/gorm"
 
 	"foodnetwork/config"
 	"foodnetwork/models"
-	"github.com/gin-gonic/gin"
-	"github.com/jinzhu/gorm"
 )
 
 func CreateReview(c *gin.Context) {
-	var input models.Review
-	if err := c.ShouldBindJSON(&input); err != nil {
+	db := config.InitDB()
+
+	var review models.Review
+	if err := c.ShouldBindJSON(&review); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	db := c.MustGet("db").(*gorm.DB)
-	review := models.Review{
-		Text:            input.Text,
-		UserPublisherID: input.UserPublisherID,
-		UserID:          input.UserID,
-		ProductID:       input.ProductID,
-		ServiceID:       input.ServiceID,
-		BusinessID:      input.BusinessID,
-	}
-
 	db.Create(&review)
-	c.JSON(http.StatusOK, gin.H{"data": review})
+
+	c.JSON(http.StatusCreated, gin.H{"data": review})
 }
 
 func GetReview(c *gin.Context) {
-	id, err := strconv.Atoi(c.Param("id"))
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid review id"})
-		return
-	}
+	db := config.InitDB()
 
-	db := c.MustGet("db").(*gorm.DB)
 	var review models.Review
-	if err := db.Where("id = ?", id).First(&review).Error; err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Review not found"})
+	if err := db.Where("id = ?", c.Param("id")).First(&review).Error; err != nil {
+		if err == gorm.ErrRecordNotFound {
+			c.JSON(http.StatusNotFound, gin.H{"error": "Record not found"})
+			return
+		}
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
@@ -50,63 +41,34 @@ func GetReview(c *gin.Context) {
 }
 
 func UpdateReview(c *gin.Context) {
-	id, err := strconv.Atoi(c.Param("id"))
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid review id"})
-		return
-	}
+	db := config.InitDB()
 
-	db := c.MustGet("db").(*gorm.DB)
 	var review models.Review
-	if err := db.Where("id = ?", id).First(&review).Error; err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Review not found"})
+	if err := db.Where("id = ?", c.Param("id")).First(&review).Error; err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Record not found"})
 		return
 	}
 
-	var input models.Review
-	if err := c.ShouldBindJSON(&input); err != nil {
+	if err := c.ShouldBindJSON(&review); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	db.Model(&review).Updates(models.Review{
-		Text:            input.Text,
-		UserPublisherID: input.UserPublisherID,
-		UserID:          input.UserID,
-		ProductID:       input.ProductID,
-		ServiceID:       input.ServiceID,
-		BusinessID:      input.BusinessID,
-	})
+	db.Save(&review)
 
 	c.JSON(http.StatusOK, gin.H{"data": review})
 }
 
 func DeleteReview(c *gin.Context) {
-	id, err := strconv.Atoi(c.Param("id"))
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid review id"})
-		return
-	}
+	db := config.InitDB()
 
-	db := c.MustGet("db").(*gorm.DB)
 	var review models.Review
-	if err := db.Where("id = ?", id).First(&review).Error; err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Review not found"})
+	if err := db.Where("id = ?", c.Param("id")).First(&review).Error; err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Record not found"})
 		return
 	}
 
 	db.Delete(&review)
 
-	c.JSON(http.StatusOK, gin.H{"data": fmt.Sprintf("Review with ID %d has been deleted", id)})
-}
-
-func ListReviews(c *gin.Context) {
-	db := c.MustGet("db").(*gorm.DB)
-	var reviews []models.Review
-	if err := db.Find(&reviews).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error retrieving reviews"})
-		return
-	}
-
-	c.JSON(http.StatusOK, gin.H{"data": reviews})
+	c.JSON(http.StatusOK, gin.H{"data": "Record deleted successfully"})
 }

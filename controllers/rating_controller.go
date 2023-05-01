@@ -1,93 +1,74 @@
-// controllers/ratings.go
 package controllers
 
 import (
 	"net/http"
-	"strconv"
+
+	"github.com/gin-gonic/gin"
+	"gorm.io/gorm"
 
 	"foodnetwork/config"
 	"foodnetwork/models"
-	"github.com/gin-gonic/gin"
-	"github.com/jinzhu/gorm"
 )
 
-// CreateRating creates a new rating
 func CreateRating(c *gin.Context) {
+	db := config.InitDB()
+
 	var rating models.Rating
 	if err := c.ShouldBindJSON(&rating); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	if err := models.DB.Create(&rating).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
-	}
-	c.JSON(http.StatusOK, rating)
+
+	db.Create(&rating)
+
+	c.JSON(http.StatusCreated, gin.H{"data": rating})
 }
 
-// GetRating retrieves a rating by ID
 func GetRating(c *gin.Context) {
-	rating, err := findRatingByID(c)
-	if err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
+	db := config.InitDB()
+
+	var rating models.Rating
+	if err := db.Where("id = ?", c.Param("id")).First(&rating).Error; err != nil {
+		if err == gorm.ErrRecordNotFound {
+			c.JSON(http.StatusNotFound, gin.H{"error": "Record not found"})
+			return
+		}
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
-	c.JSON(http.StatusOK, rating)
+
+	c.JSON(http.StatusOK, gin.H{"data": rating})
 }
 
-// UpdateRating updates an existing rating
 func UpdateRating(c *gin.Context) {
-	rating, err := findRatingByID(c)
-	if err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
+	db := config.InitDB()
+
+	var rating models.Rating
+	if err := db.Where("id = ?", c.Param("id")).First(&rating).Error; err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Record not found"})
 		return
 	}
+
 	if err := c.ShouldBindJSON(&rating); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	if err := models.DB.Save(&rating).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
-	}
-	c.JSON(http.StatusOK, rating)
+
+	db.Save(&rating)
+
+	c.JSON(http.StatusOK, gin.H{"data": rating})
 }
 
-// DeleteRating deletes a rating by ID
 func DeleteRating(c *gin.Context) {
-	rating, err := findRatingByID(c)
-	if err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
-		return
-	}
-	if err := models.DB.Delete(&rating).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
-	}
-	c.JSON(http.StatusOK, gin.H{"message": "Rating deleted successfully"})
-}
+	db := config.InitDB()
 
-// ListRatings lists all ratings
-func ListRatings(c *gin.Context) {
-	var ratings []models.Rating
-	if err := models.DB.Find(&ratings).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
-	}
-	c.JSON(http.StatusOK, ratings)
-}
-
-func findRatingByID(c *gin.Context) (*models.Rating, error) {
-	id, err := strconv.Atoi(c.Param("id"))
-	if err != nil {
-		return nil, err
-	}
 	var rating models.Rating
-	if err := models.DB.First(&rating, id).Error; err != nil {
-		if gorm.IsRecordNotFoundError(err) {
-			return nil, err
-		}
-		return nil, utils.NewInternalServerError(err.Error())
+	if err := db.Where("id = ?", c.Param("id")).First(&rating).Error; err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Record not found"})
+		return
 	}
-	return &rating, nil
+
+	db.Delete(&rating)
+
+	c.JSON(http.StatusOK, gin.H{"data": "Record deleted successfully"})
 }

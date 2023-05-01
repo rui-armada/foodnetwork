@@ -18,11 +18,22 @@ services:
   db:
     container_name: my-db
     image: postgres:13-alpine
+    ports:
+      - "5432:5432"
     volumes:
       - dbdata:/var/lib/postgresql/data
     environment:
       POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: example
-      POSTGRES_DB: myapp
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: food
+  frontend:
+    container_name: my-frontend
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    depends_on:
+      - app
 volumes:
   dbdata:

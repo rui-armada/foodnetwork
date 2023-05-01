@@ -1,0 +1,82 @@
+type User struct {
+	gorm.Model
+	Name         string
+	Email        string `gorm:"unique"`
+	Password     string
+	JobTitleID   uint
+	BusinessID   uint
+}
+
+type Business struct {
+	gorm.Model
+	Name       string
+	Address    string
+	BusinessTypeID uint
+}
+
+type BusinessUser struct {
+	gorm.Model
+	UserID       uint
+	BusinessID uint
+    JobTitleID uint
+}
+
+type BusinessType struct {
+	gorm.Model
+	Name       string
+}
+
+type JobTitle struct {
+	gorm.Model
+	Name       string
+}
+
+type JobPost struct {
+	gorm.Model
+	Title      string
+	Description string
+	BusinessID uint
+}
+
+type Product struct {
+	gorm.Model
+	Name        string
+	Description string
+	BusinessID  uint
+}
+
+type Service struct {
+	gorm.Model
+	Name        string
+	Description string
+	BusinessID  uint
+}
+
+type Rating struct {
+	gorm.Model
+	Value      float64
+	UserID     uint
+	ProductID  uint
+	ServiceID  uint
+    BusinessID uint
+}
+
+type Review struct {
+	gorm.Model
+	Text       string
+    UserPublisherID uint
+	UserID     uint
+	ProductID  uint
+	ServiceID  uint
+    BusinessID uint
+}
+
+type ProfessionalExperience struct {
+	gorm.Model
+	UserID         uint
+	JobTitleID     uint
+	BusinessID     uint
+	StartDate      string
+	EndDate        string
+	Description    string
+}

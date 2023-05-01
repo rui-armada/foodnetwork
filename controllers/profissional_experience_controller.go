@@ -1,113 +1,74 @@
 package controllers
 
 import (
-	"fmt"
 	"net/http"
-	"strconv"
+
+	"github.com/gin-gonic/gin"
+	"gorm.io/gorm"
 
 	"foodnetwork/config"
 	"foodnetwork/models"
-	"github.com/gin-gonic/gin"
-	"github.com/jinzhu/gorm"
 )
 
 func CreateProfessionalExperience(c *gin.Context) {
-	var input models.ProfessionalExperience
-	if err := c.ShouldBindJSON(&input); err != nil {
+	db := config.InitDB()
+
+	var experience models.ProfessionalExperience
+	if err := c.ShouldBindJSON(&experience); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	db := c.MustGet("db").(*gorm.DB)
-	professionalExperience := models.ProfessionalExperience{
-		UserID:      input.UserID,
-		JobTitleID:  input.JobTitleID,
-		BusinessID:  input.BusinessID,
-		StartDate:   input.StartDate,
-		EndDate:     input.EndDate,
-		Description: input.Description,
-	}
+	db.Create(&experience)
 
-	db.Create(&professionalExperience)
-	c.JSON(http.StatusOK, gin.H{"data": professionalExperience})
+	c.JSON(http.StatusCreated, gin.H{"data": experience})
 }
 
 func GetProfessionalExperience(c *gin.Context) {
-	id, err := strconv.Atoi(c.Param("id"))
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid professional experience id"})
-		return
-	}
+	db := config.InitDB()
 
-	db := c.MustGet("db").(*gorm.DB)
-	var professionalExperience models.ProfessionalExperience
-	if err := db.Where("id = ?", id).First(&professionalExperience).Error; err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Professional experience not found"})
-		return
-	}
-
-	c.JSON(http.StatusOK, gin.H{"data": professionalExperience})
-}
-
-func UpdateProfessionalExperience(c *gin.Context) {
-	id, err := strconv.Atoi(c.Param("id"))
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid professional experience id"})
-		return
-	}
-
-	db := c.MustGet("db").(*gorm.DB)
-	var professionalExperience models.ProfessionalExperience
-	if err := db.Where("id = ?", id).First(&professionalExperience).Error; err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Professional experience not found"})
-		return
-	}
-
-	var input models.ProfessionalExperience
-	if err := c.ShouldBindJSON(&input); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
-
-	db.Model(&professionalExperience).Updates(models.ProfessionalExperience{
-		UserID:      input.UserID,
-		JobTitleID:  input.JobTitleID,
-		BusinessID:  input.BusinessID,
-		StartDate:   input.StartDate,
-		EndDate:     input.EndDate,
-		Description: input.Description,
-	})
-
-	c.JSON(http.StatusOK, gin.H{"data": professionalExperience})
-}
-
-func DeleteProfessionalExperience(c *gin.Context) {
-	id, err := strconv.Atoi(c.Param("id"))
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid professional experience id"})
-		return
-	}
-
-	db := c.MustGet("db").(*gorm.DB)
-	var professionalExperience models.ProfessionalExperience
-	if err := db.Where("id = ?", id).First(&professionalExperience).Error; err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Professional experience not found"})
-		return
-	}
-
-	db.Delete(&professionalExperience)
-
-	c.JSON(http.StatusOK, gin.H{"data": fmt.Sprintf("Professional experience with ID %d has been deleted", id)})
-}
-
-func ListProfessionalExperiences(c *gin.Context) {
-	db := c.MustGet("db").(*gorm.DB)
-
-	var professionalExperiences []models.ProfessionalExperience
-	if err := db.Find(&professionalExperiences).Error; err != nil {
+	var experience models.ProfessionalExperience
+	if err := db.Where("id = ?", c.Param("id")).First(&experience).Error; err != nil {
+		if err == gorm.ErrRecordNotFound {
+			c.JSON(http.StatusNotFound, gin.H{"error": "Record not found"})
+			return
+		}
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"data": professionalExperiences})
+	c.JSON(http.StatusOK, gin.H{"data": experience})
+}
+
+func UpdateProfessionalExperience(c *gin.Context) {
+	db := config.InitDB()
+
+	var experience models.ProfessionalExperience
+	if err := db.Where("id = ?", c.Param("id")).First(&experience).Error; err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Record not found"})
+		return
+	}
+
+	if err := c.ShouldBindJSON(&experience); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	db.Save(&experience)
+
+	c.JSON(http.StatusOK, gin.H{"data": experience})
+}
+
+func DeleteProfessionalExperience(c *gin.Context) {
+	db := config.InitDB()
+
+	var experience models.ProfessionalExperience
+	if err := db.Where("id = ?", c.Param("id")).First(&experience).Error; err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Record not found"})
+		return
+	}
+
+	db.Delete(&experience)
+
+	c.JSON(http.StatusOK, gin.H{"data": "Record deleted successfully"})
 }

@@ -6,3 +6,4 @@ type JobTitle struct {
 	gorm.Model
 	Name string
 }
+

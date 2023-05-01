@@ -17,7 +17,7 @@ func InitDB() *gorm.DB {
 		log.Fatal(err)
 	}
 
-	err = db.AutoMigrate(&models.User{})
+	err = db.AutoMigrate(&models.User{}, &models.Business{}, &models.BusinessType{}, &models.BusinessUser{}, &models.JobPost{}, &models.JobTitle{}, &models.Product{}, &models.Service{}, &models.ProfessionalExperience{}, &models.Rating{}, &models.Review{})
 	if err != nil {
 		log.Fatal(err)
 	}

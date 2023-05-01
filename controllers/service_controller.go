@@ -3,64 +3,72 @@ package controllers
 import (
 	"net/http"
 
+	"github.com/gin-gonic/gin"
+	"gorm.io/gorm"
+
 	"foodnetwork/config"
 	"foodnetwork/models"
-	"github.com/gin-gonic/gin"
-	"github.com/jinzhu/gorm"
 )
 
-type ServiceController struct {
-	DB *gorm.DB
-}
+func CreateService(c *gin.Context) {
+	db := config.InitDB()
 
-func (sc *ServiceController) GetAllServices(c *gin.Context) {
-	var services []models.Service
-	sc.DB.Find(&services)
-	c.JSON(http.StatusOK, services)
-}
-
-func (sc *ServiceController) GetServiceByID(c *gin.Context) {
-	id := c.Param("id")
-	var service models.Service
-	if err := sc.DB.Where("id = ?", id).First(&service).Error; err != nil {
-		c.AbortWithStatus(http.StatusNotFound)
-		return
-	}
-	c.JSON(http.StatusOK, service)
-}
-
-func (sc *ServiceController) CreateService(c *gin.Context) {
 	var service models.Service
 	if err := c.ShouldBindJSON(&service); err != nil {
-		c.AbortWithStatus(http.StatusBadRequest)
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	sc.DB.Create(&service)
-	c.JSON(http.StatusCreated, service)
+
+	db.Create(&service)
+
+	c.JSON(http.StatusCreated, gin.H{"data": service})
 }
 
-func (sc *ServiceController) UpdateService(c *gin.Context) {
-	id := c.Param("id")
+func GetService(c *gin.Context) {
+	db := config.InitDB()
+
 	var service models.Service
-	if err := sc.DB.Where("id = ?", id).First(&service).Error; err != nil {
-		c.AbortWithStatus(http.StatusNotFound)
+	if err := db.Where("id = ?", c.Param("id")).First(&service).Error; err != nil {
+		if err == gorm.ErrRecordNotFound {
+			c.JSON(http.StatusNotFound, gin.H{"error": "Record not found"})
+			return
+		}
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
+
+	c.JSON(http.StatusOK, gin.H{"data": service})
+}
+
+func UpdateService(c *gin.Context) {
+	db := config.InitDB()
+
+	var service models.Service
+	if err := db.Where("id = ?", c.Param("id")).First(&service).Error; err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Record not found"})
+		return
+	}
+
 	if err := c.ShouldBindJSON(&service); err != nil {
-		c.AbortWithStatus(http.StatusBadRequest)
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	sc.DB.Save(&service)
-	c.JSON(http.StatusOK, service)
+
+	db.Save(&service)
+
+	c.JSON(http.StatusOK, gin.H{"data": service})
 }
 
-func (sc *ServiceController) DeleteService(c *gin.Context) {
-	id := c.Param("id")
+func DeleteService(c *gin.Context) {
+	db := config.InitDB()
+
 	var service models.Service
-	if err := sc.DB.Where("id = ?", id).First(&service).Error; err != nil {
-		c.AbortWithStatus(http.StatusNotFound)
+	if err := db.Where("id = ?", c.Param("id")).First(&service).Error; err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Record not found"})
 		return
 	}
-	sc.DB.Delete(&service)
-	c.Status(http.StatusNoContent)
+
+	db.Delete(&service)
+
+	c.JSON(http.StatusOK, gin.H{"data": "Record deleted successfully"})
 }

@@ -3,64 +3,84 @@ package controllers
 import (
 	"net/http"
 
+	"github.com/gin-gonic/gin"
+	"gorm.io/gorm"
+
 	"foodnetwork/config"
 	"foodnetwork/models"
-	"github.com/gin-gonic/gin"
-	"github.com/jinzhu/gorm"
 )
 
-type ProductController struct {
-	DB *gorm.DB
+func CreateProduct(c *gin.Context) {
+	db := config.InitDB()
+
+	var product models.Product
+	if err := c.ShouldBindJSON(&product); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	db.Create(&product)
+
+	c.JSON(http.StatusCreated, gin.H{"data": product})
 }
 
-func (pc *ProductController) GetAllProducts(c *gin.Context) {
+func GetProduct(c *gin.Context) {
+	db := config.InitDB()
+
+	var product models.Product
+	if err := db.Where("id = ?", c.Param("id")).First(&product).Error; err != nil {
+		if err == gorm.ErrRecordNotFound {
+			c.JSON(http.StatusNotFound, gin.H{"error": "Record not found"})
+			return
+		}
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"data": product})
+}
+
+func UpdateProduct(c *gin.Context) {
+	db := config.InitDB()
+
+	var product models.Product
+	if err := db.Where("id = ?", c.Param("id")).First(&product).Error; err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Record not found"})
+		return
+	}
+
+	if err := c.ShouldBindJSON(&product); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	db.Save(&product)
+
+	c.JSON(http.StatusOK, gin.H{"data": product})
+}
+
+func DeleteProduct(c *gin.Context) {
+	db := config.InitDB()
+
+	var product models.Product
+	if err := db.Where("id = ?", c.Param("id")).First(&product).Error; err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Record not found"})
+		return
+	}
+
+	db.Delete(&product)
+
+	c.JSON(http.StatusOK, gin.H{"data": "Record deleted successfully"})
+}
+
+func GetProducts(c *gin.Context) {
+	db := config.InitDB()
+
 	var products []models.Product
-	pc.DB.Find(&products)
-	c.JSON(http.StatusOK, products)
-}
+	if err := db.Find(&products).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
 
-func (pc *ProductController) GetProductByID(c *gin.Context) {
-	id := c.Param("id")
-	var product models.Product
-	if err := pc.DB.Where("id = ?", id).First(&product).Error; err != nil {
-		c.AbortWithStatus(http.StatusNotFound)
-		return
-	}
-	c.JSON(http.StatusOK, product)
-}
-
-func (pc *ProductController) CreateProduct(c *gin.Context) {
-	var product models.Product
-	if err := c.ShouldBindJSON(&product); err != nil {
-		c.AbortWithStatus(http.StatusBadRequest)
-		return
-	}
-	pc.DB.Create(&product)
-	c.JSON(http.StatusCreated, product)
-}
-
-func (pc *ProductController) UpdateProduct(c *gin.Context) {
-	id := c.Param("id")
-	var product models.Product
-	if err := pc.DB.Where("id = ?", id).First(&product).Error; err != nil {
-		c.AbortWithStatus(http.StatusNotFound)
-		return
-	}
-	if err := c.ShouldBindJSON(&product); err != nil {
-		c.AbortWithStatus(http.StatusBadRequest)
-		return
-	}
-	pc.DB.Save(&product)
-	c.JSON(http.StatusOK, product)
-}
-
-func (pc *ProductController) DeleteProduct(c *gin.Context) {
-	id := c.Param("id")
-	var product models.Product
-	if err := pc.DB.Where("id = ?", id).First(&product).Error; err != nil {
-		c.AbortWithStatus(http.StatusNotFound)
-		return
-	}
-	pc.DB.Delete(&product)
-	c.Status(http.StatusNoContent)
+	c.JSON(http.StatusOK, gin.H{"data": products})
 }
