@@ -6,8 +6,7 @@ import (
 	"foodnetwork/controllers"
 )
 
-func SetupRouter() *gin.Engine {
-	router := gin.Default()
+func SetupRouter(router *gin.Engine) *gin.Engine {
 
 	v1 := router.Group("/api/v1")
 
@@ -85,6 +84,7 @@ func SetupRouter() *gin.Engine {
 	//v1.GET("/professional-experiences", controllers.ListProfessionalExperiences)
 
 	v1.POST("/login", controllers.Login)
+	v1.POST("/register", controllers.Register)
 
 	return router
 }

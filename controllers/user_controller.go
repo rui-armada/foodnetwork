@@ -79,16 +79,21 @@ func Login(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid email or password"})
 		return
 	}
+
+	enteredPassword := user.Password
+
 	// check if the user exists in the database
 	if err := db.Where("email = ?", user.Email).First(&user).Error; err != nil {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid email or password"})
 		return
 	}
+
 	// check if the password is correct
-	if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(user.Password)); err != nil {
+	if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(enteredPassword)); err != nil {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid email or password"})
 		return
 	}
+
 	// generate a JWT token for the user
 	token, err := generateToken(user.ID)
 	if err != nil {
@@ -111,4 +116,38 @@ func generateToken(userID uint) (string, error) {
 	}
 
 	return signedToken, nil
+}
+
+func Register(c *gin.Context) {
+	var user models.User
+	db := config.InitDB()
+	if err := c.ShouldBindJSON(&user); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"lolol": err.Error()})
+		return
+	}
+
+	// check if the email already exists in the database
+	var existingUser models.User
+	if err := db.Where("email = ?", user.Email).First(&existingUser).Error; err == nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Email already exists"})
+		return
+	}
+
+	// hash the password before saving it to the database
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal server error"})
+		return
+	}
+	user.Password = string(hashedPassword)
+
+	db.Create(&user)
+
+	// generate a JWT token for the user
+	token, err := generateToken(user.ID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal server error"})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"token": token})
 }
