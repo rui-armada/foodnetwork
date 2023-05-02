@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-const axios = require('axios')
+import axios from 'axios';
 
 function Login() {
   const [email, setEmail] = useState('');
@@ -7,7 +7,7 @@ function Login() {
   const [name, setName] = useState('');
   const [isRegister, setIsRegister] = useState(false); // track whether the user is registering or logging in
 
-  const handleSubmit = async (event: { preventDefault: () => void; }) => {
+  const handleSubmit = async (event) => {
     event.preventDefault();
     try {
       const route = isRegister ? 'http://localhost:8080/api/v1/register' : 'http://localhost:8080/api/v1/login';
@@ -17,9 +17,11 @@ function Login() {
       // redirect to dashboard or home page
       window.location.href = '/home';
     } catch (error) {
-      alert('error');
+      console.error('Error in API call:', error.response ? error.response.data : error.message);
+      alert('Error: ' + (error.response ? error.response.data : error.message));
     }
   };
+  
 
   return (
     <div>
