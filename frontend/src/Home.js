@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import './Home.css';
 
 function Home() {
   const [posts, setPosts] = useState([]);
@@ -24,8 +25,8 @@ function Home() {
   };
 
   const handleCreatePost = async () => {
-    const token = localStorage.getItem('token');    
-  
+    const token = localStorage.getItem('token');
+
     try {
       await axios.post(
         'http://localhost:8080/api/v1/posts',
@@ -40,42 +41,34 @@ function Home() {
       console.error('Error creating post:', error);
     }
   };
-  
+
   return (
-    <div>
-      <h1>Home</h1>
-      <button onClick={handleLogout}>Logout</button>
-      <div>
+    <div className="home">
+      <header className="home-header">
+        <h1>Home</h1>
+        <button onClick={handleLogout} className="logout-btn">Logout</button>
+      </header>
+      <div className="create-post">
         <h3>Create a new post:</h3>
         <textarea
           value={description}
           onChange={(e) => setDescription(e.target.value)}
-          style={{ width: '100%', marginBottom: '10px' }}
+          className="create-post-textarea"
         />
-        <button
-          onClick={handleCreatePost}
-          style={{
-            backgroundColor: '#4CAF50',
-            color: 'white',
-            padding: '10px',
-            borderRadius: '5px',
-            border: 'none',
-            marginBottom: '20px',
-          }}
-        >
+        <button onClick={handleCreatePost} className="create-post-btn">
           Create Post
         </button>
       </div>
-      <div>
+      <div className="posts">
         <h2>All Posts:</h2>
-        <ul>
+        <div className="posts-grid">
           {posts.map((post) => (
-            <li key={post.id}>
-              <p>Posted by: {post.userName}</p>
-              <p>{post.description}</p>
-            </li>
+            <div key={post.id} className="post">
+              <p className="post-author">Posted by: {post.userName}</p>
+              <p className="post-description">{post.description}</p>
+            </div>
           ))}
-        </ul>
+        </div>
       </div>
     </div>
   );
